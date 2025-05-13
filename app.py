@@ -96,7 +96,7 @@ def main():
 
 
     st.title("Ciao amore questa è l'app dedicata a te!")
-    st.header("ti amo!!")
+    st.header("ti amo!! <3")
     if st.button('PREMI QUI'):
         st.image(immagine1)
         st.balloons()
@@ -105,6 +105,7 @@ def main():
         st.header('ti ricordi??')
     if st.button('E ORA PREMI QUI'):
         st.image(immagine3)
+        
 
 
 
