@@ -17,7 +17,7 @@ def main():
     st.text(f"l'area del rettangolo è pari a {area}") 
 
 
-    immagine = r"C:\Users\ifoa\Desktop\test app\cane.jpg"
+    immagine = r"C:\Users\ifoa\Desktop\testifoa\cane.jpg"
     st.image(immagine, caption='bau bau')
 
     import matplotlib.pyplot as plt
