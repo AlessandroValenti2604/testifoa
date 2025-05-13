@@ -3,5 +3,3 @@ streamlit
 matplotlib
 seaborn
 numpy
-spacy
-sklearn
