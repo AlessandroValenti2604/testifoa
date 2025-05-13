@@ -1,31 +1,99 @@
 import streamlit as st
+import pandas as pd
+import seaborn as sns
+import joblib
+import io
+
+dataset_path="iris.csv"
+
+@st.cache_data
+def load_data(dataset_path):
+    return pd.read_csv(dataset_path, header=None)
+
+@st.cache_data
+def pair(df):
+    return sns.pairplot(df)
+
+@st.cache_data
+def model_load():
+    return joblib.load("logistic_iris_pipeline.pkl")
+
+
+def convert_to_excel(df):
+    output = io.BytesIO()
+    writer = pd.ExcelWriter(output, engine="xlsxwriter")
+    df.to_excel(writer, sheet_name="data",index=False)
+    # see: https://xlsxwriter.readthedocs.io/working_with_pandas.html
+    writer.close()
+    return output.getvalue()
+
 
 def main():
-    st.header("Calcolo dell'area di un rettangolo")
-    x = st.slider("inserire la lunghezza del lato corto", min_value=1, max_value= 30)
-    y = st.slider("Inserire la lunghezza del lato lungo", min_value=1, max_value= 30)
-    a = st.slider("inserire la lunghezza del lato a", min_value=1, max_value= 30)
-    b = st.slider("inserire la lunghezza del lato b", min_value=1, max_value= 30)
-    c = st.slider("inserire la lunghezza del lato c", min_value=1, max_value= 30)
-    d = st.slider("inserire la lunghezza del lato d", min_value=1, max_value= 30)
-    e= st.slider("inserire la lunghezza del lato e", min_value=1, max_value= 30)
-    f = st.slider("inserire la lunghezza del lato f", min_value=1, max_value= 30)
-    g = st.slider("inserire la lunghezza del lato g", min_value=1, max_value= 30)
-    h = st.slider("inserire la lunghezza del lato h", min_value=1, max_value= 30)
+    st.title("App Riconoscimento IRIS")
+    df = load_data(dataset_path)
+    loaded_model = model_load()
+    df.columns = ['sepal length', 'sepal width', 'petal length', 'petal width', 'class']
 
-    area = x*y
-    st.text(f"l'area del rettangolo è pari a {area}") 
+    # st.dataframe(df)
+
+    tab1,tab2,tab3 = st.tabs(['Statistica', 'Prediction', 'Drag & Drop'])
+
+    with tab1:
+        st.header('Pairplot Iris')
+        fig = pair(df)
+        st.pyplot(fig)
+    # def create_pairplot(data, features, hue=None):
+    #     """Crea un pairplot con le features selezionate"""
+    #     #fig = plt.figure(figsize=(12,12))
+    #     fig = sns.pairplot(data[features], hue=hue, diag_kind='kde',height=1.5)
+    #     #fig.title('Relazioni tra le Variabili Selezionate', y=1.02, size=16)
+    #     return fig
+    
+    with tab2:
+        sepal_length = st.slider(label= 'lunghezza sepalo', min_value=0.0, max_value= 8.0)
+        sepal_width = st.slider(label= 'larghezza sepalo', min_value=0.0, max_value= 8.0)
+        petal_length =st.slider(label= 'lunghezza petalo', min_value=0.0, max_value= 8.0)
+        petal_width = st.slider(label= 'larghezza petalo', min_value=0.0, max_value= 8.0)
 
 
-    immagine = r"C:\Users\ifoa\Desktop\testifoa\cane.jpg"
-    st.image(immagine, caption='bau bau')
+        data = {
+                "sepal length": [sepal_length],
+                "sepal width": [sepal_width],
+                "petal length": [petal_length],
+                "petal width": [petal_width],
+                }
+        
+        classes =  {0:'Iris-setosa',
+                    2:'Iris-virginica',
+                    1:'Iris-versicolor',
+                    }
+        
+            
+        input_df = pd.DataFrame(data)
+        res = loaded_model.predict(input_df).astype(int)[0]
+        y_pred = classes[res]
+        st.success(y_pred)
+        
+    with tab3:
+        st.title("Caricamento File CSV/XLSX")
+        uploaded_file = st.file_uploader("Scegli un file CSV o XLSX", type=['csv', 'xlsx'])
 
-    import matplotlib.pyplot as plt
-    fig= plt.figure()
-    plt.plot([x, a, c, e, g], [y, b, d, f, h])
-    st.pyplot(fig)
+        if uploaded_file is not None:
+            # Verifica l'estensione del file
+            if uploaded_file.name.endswith('.csv'):
+                df = pd.read_csv(uploaded_file)
+                st.success("File CSV caricato con successo!")
+            elif uploaded_file.name.endswith('.xlsx'):
+                df = pd.read_excel(uploaded_file)
+                st.success("File XLSX caricato con successo!")
+            else:
+                st.error("Formato file non supportato!")
+
+            st.dataframe(df)
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
+
+
+
